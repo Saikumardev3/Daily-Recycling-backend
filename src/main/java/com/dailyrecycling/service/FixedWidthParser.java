@@ -1,7 +1,9 @@
 package com.dailyrecycling.service;
 
 import com.dailyrecycling.model.PolicyRecord;
+import org.springframework.stereotype.Service;
 
+@Service
 public class FixedWidthParser {
 
     /**

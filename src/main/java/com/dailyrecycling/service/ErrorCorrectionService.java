@@ -1,25 +1,19 @@
 package com.dailyrecycling.service;
 
 import com.dailyrecycling.model.PolicyRecord;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
 import java.util.Map;
 
+@Service
 public class ErrorCorrectionService {
 
+    @Autowired
     private DatabaseService databaseService;
-    private FixedWidthParser fixedWidthParser;
+
+    @Autowired
     private EmailService emailService;
-
-    public void setDatabaseService(DatabaseService databaseService) {
-        this.databaseService = databaseService;
-    }
-
-    public void setFixedWidthParser(FixedWidthParser fixedWidthParser) {
-        this.fixedWidthParser = fixedWidthParser;
-    }
-
-    public void setEmailService(EmailService emailService) {
-        this.emailService = emailService;
-    }
 
     /**
      * Correct Start Date - End Date Issue (Event Type 1RA)

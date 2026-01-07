@@ -27,3 +27,4 @@ public class PolicyRecord {
     private String rawRecord; // Full fixed-width record
 }
 
+

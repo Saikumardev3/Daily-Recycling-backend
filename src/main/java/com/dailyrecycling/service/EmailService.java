@@ -1,23 +1,22 @@
 package com.dailyrecycling.service;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.Map;
 
+@Service
 public class EmailService {
 
+    @Autowired
     private JavaMailSender mailSender;
-    private String fromEmail = "noreply@dailyrecycling.com";
 
-    public void setMailSender(JavaMailSender mailSender) {
-        this.mailSender = mailSender;
-    }
-
-    public void setFromEmail(String fromEmail) {
-        this.fromEmail = fromEmail;
-    }
+    @Value("${spring.mail.username:noreply@dailyrecycling.com}")
+    private String fromEmail;
 
     // Back Office Email Mappings - Update these based on your requirements
     private static final Map<String, String> BACK_OFFICE_EMAILS = new HashMap<>();

@@ -1,90 +1,79 @@
-package com.dailyrecycling.action;
+package com.dailyrecycling.controller;
 
 import com.dailyrecycling.model.PolicyRecord;
 import com.dailyrecycling.service.ErrorCorrectionService;
 import com.dailyrecycling.service.FixedWidthParser;
-import com.opensymphony.xwork2.ActionSupport;
-import lombok.Getter;
-import lombok.Setter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class RecyclingAction extends ActionSupport {
+@RestController
+@RequestMapping("/api/recycling")
+@CrossOrigin(origins = "http://localhost:3000")
+public class RecyclingController {
 
+    @Autowired
     private FixedWidthParser fixedWidthParser;
+
+    @Autowired
     private ErrorCorrectionService errorCorrectionService;
-
-    @Getter
-    @Setter
-    private Map<String, Object> result = new HashMap<>();
-
-    @Getter
-    @Setter
-    private Map<String, Object> errorResult = new HashMap<>();
-
-    @Getter
-    @Setter
-    private String record;
-
-    @Getter
-    @Setter
-    private String errorType;
-
-    @Getter
-    @Setter
-    private String policyNumber;
-
-    // Setter injection for Struts-Spring integration
-    public void setFixedWidthParser(FixedWidthParser fixedWidthParser) {
-        this.fixedWidthParser = fixedWidthParser;
-    }
-
-    public void setErrorCorrectionService(ErrorCorrectionService errorCorrectionService) {
-        this.errorCorrectionService = errorCorrectionService;
-    }
 
     /**
      * Health check endpoint
      */
-    public String health() {
+    @GetMapping("/health")
+    public ResponseEntity<Map<String, Object>> health() {
+        Map<String, Object> result = new HashMap<>();
         result.put("status", "UP");
         result.put("service", "Daily Recycling Backend");
-        result.put("framework", "Apache Struts 2");
-        return SUCCESS;
+        result.put("framework", "Spring Boot");
+        return ResponseEntity.ok(result);
     }
 
     /**
      * Parse fixed-width record
      */
-    public String parseRecord() {
+    @PostMapping("/parse")
+    public ResponseEntity<?> parseRecord(@RequestBody Map<String, String> request) {
         try {
+            String record = request.get("record");
             if (record == null || record.trim().isEmpty()) {
-                errorResult.put("error", "Record is required");
-                errorResult.put("message", "Please provide a valid fixed-width record");
-                return ERROR;
+                Map<String, String> error = new HashMap<>();
+                error.put("error", "Record is required");
+                error.put("message", "Please provide a valid fixed-width record");
+                return ResponseEntity.badRequest().body(error);
             }
 
             PolicyRecord policyRecord = fixedWidthParser.parseRecord(record);
+            Map<String, Object> result = new HashMap<>();
             result.put("success", true);
             result.put("data", policyRecord);
-            return SUCCESS;
+            return ResponseEntity.ok(result);
 
         } catch (Exception e) {
-            errorResult.put("error", "Parsing failed");
-            errorResult.put("message", e.getMessage());
-            return ERROR;
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Parsing failed");
+            error.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
         }
     }
 
     /**
      * Correct record errors
      */
-    public String correctRecord() {
+    @PostMapping("/correct")
+    public ResponseEntity<?> correctRecord(@RequestBody Map<String, String> request) {
         try {
+            String record = request.get("record");
+            String errorType = request.get("errorType");
+
             if (record == null || record.trim().isEmpty()) {
-                errorResult.put("error", "Record is required");
-                return ERROR;
+                Map<String, String> error = new HashMap<>();
+                error.put("error", "Record is required");
+                return ResponseEntity.badRequest().body(error);
             }
 
             PolicyRecord policyRecord = fixedWidthParser.parseRecord(record);
@@ -119,39 +108,37 @@ public class RecyclingAction extends ActionSupport {
 
             String correctedRecord = fixedWidthParser.updateRecord(record, policyRecord);
             
+            Map<String, Object> result = new HashMap<>();
             result.put("success", true);
             result.put("message", "Record corrected successfully");
             result.put("correctedRecord", correctedRecord);
             result.put("policyRecord", policyRecord);
-            return SUCCESS;
+            return ResponseEntity.ok(result);
 
         } catch (Exception e) {
-            errorResult.put("error", "Correction failed");
-            errorResult.put("message", e.getMessage());
-            return ERROR;
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Correction failed");
+            error.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
         }
     }
 
     /**
      * Process batch of records
      */
-    public String processBatch() {
-        try {
-            // Batch processing logic will be implemented
-            result.put("success", true);
-            result.put("message", "Batch processing initiated");
-            return SUCCESS;
-        } catch (Exception e) {
-            errorResult.put("error", "Batch processing failed");
-            errorResult.put("message", e.getMessage());
-            return ERROR;
-        }
+    @PostMapping("/batch")
+    public ResponseEntity<Map<String, Object>> processBatch() {
+        Map<String, Object> result = new HashMap<>();
+        result.put("success", true);
+        result.put("message", "Batch processing initiated");
+        return ResponseEntity.ok(result);
     }
 
     /**
      * Get error types
      */
-    public String getErrorTypes() {
+    @GetMapping("/errorTypes")
+    public ResponseEntity<Map<String, Object>> getErrorTypes() {
         Map<String, String> errorTypes = new HashMap<>();
         errorTypes.put("START_DATE_END_DATE", "Start Date - End Date Issue (Event Type 1RA)");
         errorTypes.put("GROSS_AMOUNT_ZERO", "Event Type ≠ 1RA & Gross Amount = 0");
@@ -161,8 +148,10 @@ public class RecyclingAction extends ActionSupport {
         errorTypes.put("CODE_PAYS_ASSURE", "Code Pays Assure");
         errorTypes.put("DURATION_EXCEEDS_9999", "Duration Exceeds 9999 Days");
 
+        Map<String, Object> result = new HashMap<>();
         result.put("success", true);
         result.put("errorTypes", errorTypes);
-        return SUCCESS;
+        return ResponseEntity.ok(result);
     }
 }
+
